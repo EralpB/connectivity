@@ -578,13 +578,15 @@ Renderer.prototype.start = function() {
 	this.layout.start(function render() {
 		t.clear();
 
+		t.layout.eachNode(function(node, point) {
+			t.drawNode(node, point.p);
+		});
+		
 		t.layout.eachEdge(function(edge, spring) {
 			t.drawEdge(edge, spring.point1.p, spring.point2.p);
 		});
 
-		t.layout.eachNode(function(node, point) {
-			t.drawNode(node, point.p);
-		});
+		
 	});
 };
 

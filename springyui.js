@@ -194,6 +194,17 @@ jQuery.fn.springy = function(params) {
 			} else {
 				lineEnd = s2;
 			}
+			
+			if (edge.data.label !== undefined) {
+				text = edge.data.label
+				ctx.save();
+				ctx.textAlign = "center";
+				ctx.textBaseline = "top";
+				ctx.font = "10px Helvetica, sans-serif";
+				ctx.fillStyle = "#5BA6EC";
+				ctx.fillText(text, (x1+x2)/2, (y1+y2)/2);
+				ctx.restore();
+			}
 
 			ctx.strokeStyle = stroke;
 			ctx.beginPath();
@@ -218,19 +229,11 @@ jQuery.fn.springy = function(params) {
 			}
 
 			// label
-			if (edge.data.label !== undefined) {
-				text = edge.data.label
-				ctx.save();
-				ctx.textAlign = "center";
-				ctx.textBaseline = "top";
-				ctx.font = "10px Helvetica, sans-serif";
-				ctx.fillStyle = "#5BA6EC";
-				ctx.fillText(text, (x1+x2)/2, (y1+y2)/2);
-				ctx.restore();
-			}
+			
 
 		},
 		function drawNode(node, p) {
+	
 			var s = toScreen(p);
 
 			ctx.save();
@@ -239,7 +242,7 @@ jQuery.fn.springy = function(params) {
 			var boxHeight = node.getHeight();
 
 			// clear background
-			ctx.clearRect(s.x - boxWidth/2, s.y - 10, boxWidth, 20);
+			//ctx.clearRect(s.x - boxWidth/2, s.y - 10, boxWidth, 20);
 
 			// fill background
 			if (selected !== null && nearest.node !== null && selected.node.id === node.id) {
@@ -249,8 +252,14 @@ jQuery.fn.springy = function(params) {
 			} else {
 				ctx.fillStyle = "#FFFFFF";
 			}
-			ctx.fillRect(s.x - boxWidth/2, s.y - 10, boxWidth, 20);
-
+			var gradient = ctx.createRadialGradient(s.x, s.y, 0, s.x , s.y, 5);
+			gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+			gradient.addColorStop(0.2, 'rgba(255, 85, 85, 1)');
+			gradient.addColorStop(0.95, 'rgba(128, 0, 0, 1)');
+			gradient.addColorStop(1, 'rgba(128, 0, 0, 0)');
+			ctx.fillStyle = gradient;
+			ctx.fillRect(s.x - 5, s.y - 5, 10, 10);
+			
 			ctx.textAlign = "left";
 			ctx.textBaseline = "top";
 			ctx.font = "16px Verdana, sans-serif";
