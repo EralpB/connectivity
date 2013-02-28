@@ -1,14 +1,17 @@
 <html>
 <body>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
 <script src="http://code.highcharts.com/highcharts.js"></script>
 <script src="springy.js"></script>
 <script src="springyui.js"></script>
 
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css" />
+
 <script>
 var first = false;
 var graph,springy;
-function redraw(p){
+function redraw(v,p){
 if(!first){
 first=true;
 graph = new Graph();
@@ -19,12 +22,12 @@ springy = jQuery('#springydemo').springy({
 
 graph.filterEdges(function(){return false;});
 graph.filterNodes(function(){return false;});
-for(var i = 0;i<100;i++){
+for(var i = 0;i<v;i++){
 	graph.newNode({label:''});
 }
 
-for(var source = 0;source<100;source++){
-	for(var destination = 0;destination<100;destination++){
+for(var source = 0;source<v;source++){
+	for(var destination = 0;destination<v;destination++){
 		if(Math.random() <= p){
 			graph.newEdge(graph.nodes[source],graph.nodes[destination],{directional:false});
 		}
@@ -59,22 +62,27 @@ function eralpGraph(vertex_count) {
 		component_set.push(start_vertex);
 		
 		var set_size = 1;
-		
+		edges_copy = edges.slice(0);
+
 		do{
 			add_size = 0;
 			for(var i = 0;i<set_size;i++){
 				current_vertex = component_set[i];
-				for(var edge_no = 0;edge_no<edges.length;edge_no++){
-					if(edges[edge_no][0] == current_vertex && !visited[edges[edge_no][1]])
+				for(var edge_no = 0;edge_no<edges_copy.length;edge_no++){
+					if(edges_copy[edge_no][0] == current_vertex && !visited[edges_copy[edge_no][1]])
 					{
-						component_set.unshift(edges[edge_no][1]);
-						visited[edges[edge_no][1]] = true;
+						component_set.unshift(edges_copy[edge_no][1]);
+						visited[edges_copy[edge_no][1]] = true;
 						add_size++;
-					}else if (edges[edge_no][1] == current_vertex && !visited[edges[edge_no][0]])
+						edges_copy.splice(edge_no,1);
+						edge_no--;
+					}else if (edges_copy[edge_no][1] == current_vertex && !visited[edges_copy[edge_no][0]])
 					{
-						component_set.unshift(edges[edge_no][0]);
-						visited[edges[edge_no][0]] = true;
+						component_set.unshift(edges_copy[edge_no][0]);
+						visited[edges_copy[edge_no][0]] = true;
 						add_size++;
+						edges_copy.splice(edge_no,1);
+						edge_no--;
 					}
 				}
 			}
@@ -108,13 +116,13 @@ function eralpGraph(vertex_count) {
 
 }
 
-function monteCarloSimulation(iterations,p){
+function monteCarloSimulation(iterations,vcount,p){
 	var sum = 0;
 	for(var i = 0;i<iterations;i++){
-		var eg = new eralpGraph(100);
+		var eg = new eralpGraph(vcount);
 
-		for(var source = 0;source<100;source++){
-			for(var destination = 0;destination<100;destination++){
+		for(var source = 0;source<vcount;source++){
+			for(var destination = 0;destination<vcount;destination++){
 				if(Math.random() <= p){
 					eg.addEdge(source,destination);
 				}
@@ -125,7 +133,7 @@ function monteCarloSimulation(iterations,p){
 
 	return  (sum)*1.0/iterations;
 }
-function main(){
+function main(iteration,vcount){
 	var results =[];
 	var probability_list = [];
 	
@@ -136,14 +144,13 @@ function main(){
 	probability_list.push(1);
 	
 	for(var i = 0;i < probability_list.length; i++){
-		results.push(monteCarloSimulation(50,probability_list[i]));
+		results.push(monteCarloSimulation(iteration,vcount,probability_list[i]));
 	}
-	console.log(results);
-	
+
 	var chart;
 	chart = new Highcharts.Chart({
             chart: {
-                renderTo: 'container',
+                renderTo: 'container2',
                 type: 'line',
                 marginRight: 130,
                 marginBottom: 25
@@ -179,19 +186,98 @@ function main(){
                 borderWidth: 0
             },
             series: [{
-                name: 'Tokyo',
                 data: results
             }]
         });
 }
 
+$(function() {
+	$("#container2").show();
+	$("#springydemo").hide();
+	$("#tabs" ).tabs({
+	  activate: function( event, ui ) {
+		if($("#tabs" ).tabs( "option", "active" ) == 0)
+		{
+		$("#springydemo").hide();
+		$("#container2").show();
+		
+		}else
+		{
+		$("#springydemo").show();
+		$("#container2").hide();
+		}
+	  }
+	});
+	
+	$( "#montecarlobutton" )
+      .button()
+      .click(function( event ) {
+		main($("#icount").text(),$("#vvalue2").text());
+        event.preventDefault();
+      });
+	$( "#visualizebutton" )
+      .button()
+      .click(function( event ) {
+	  redraw($("#vvalue").text(),$("#pvalue").text());
+        event.preventDefault();
+      });
+	  
+
+	  $( "#slider" ).slider({
+	  min:0,
+		max:0.02,
+		step:0.001,
+	  slide: function( event, ui ) {
+        $("#pvalue").text(ui.value);
+      }
+	  });
+	  $( "#slider2" ).slider({
+	  min:50,
+	  max:200,
+	  slide: function( event, ui ) {
+        $("#vvalue").text(ui.value);
+      }
+	  });
+	  $( "#slider3" ).slider({
+	  min:100,
+	  max:500,
+	  step:50,
+	  slide: function( event, ui ) {
+        $("#icount").text(ui.value);
+      }
+	  });
+	  $( "#slider4" ).slider({
+	  min:50,
+	  max:1000,
+	  step:50,
+	  slide: function( event, ui ) {
+        $("#vvalue2").text(ui.value);
+      }
+	  });
+  });
 </script>
-<ul>
-<li><a href="#" onclick="main()">Monte Carlo Simulation</a></li>
-<li><a href="#" onclick="redraw(0.01)">Visualize Random Graph</a></li>
-</ul>
+<div id="container" style="width:435px;font-size: 10pt;">
+<div id="tabs">
+  <ul>
+    <li><a href="#tabs-1">Monte Carlo</a></li>
+    <li><a href="#tabs-2">Visualize</a></li>
+  </ul>
+  <div id="tabs-1">
+	<label style="float:left;line-height:13px;">Iterations:</label><div id="slider3" style="margin-left:50px;width:200px;float:left;"></div><span id="icount" style="float:left;line-height:13px;margin-left:10px;">100</span><br><br>
+	<label style="float:left;clear:both;line-height:13px;">Vertex-Count:</label><div id="slider4" style="margin-left:20px;width:200px;float:left;"></div><span id="vvalue2" style="float:left;line-height:13px;margin-left:10px;">50</span><br><br>
+    
+    <a href="#" id="montecarlobutton">Monte Carlo Simulation</a>
+	</div>
+  <div id="tabs-2">
+	<label style="float:left;line-height:13px;">P-Value:</label><div id="slider" style="margin-left:65px;width:200px;float:left;"></div><span id="pvalue" style="float:left;line-height:13px;margin-left:10px;">0</span><br><br>
+	<label style="float:left;clear:both;line-height:13px;">Vertex-Count:</label><div id="slider2" style="margin-left:20px;width:200px;float:left;"></div><span id="vvalue" style="float:left;line-height:13px;margin-left:10px;">100</span><br><br>
+    <a href="#" id="visualizebutton">Visualize Random Graph</a>
+	</div>
+</div>
+</div>
+
 <canvas id="springydemo" width="640" height="480" style="float:left;"></canvas>
-<div id="container" style="float:left; min-width: 600px; height: 400px; margin: 0 auto"></div>
+<div id="container2" style="float:left; min-width: 600px; height: 400px; margin: 0 auto"></div>
 
 
 </body>
