@@ -1,6 +1,7 @@
 <html>
 <body>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script src="http://code.highcharts.com/highcharts.js"></script>
 <script src="springy.js"></script>
 <script src="springyui.js"></script>
 
@@ -96,7 +97,7 @@ function eralpGraph(vertex_count) {
 			if(component_size > largest_component_size)
 				largest_component_size = component_size;
 		}while(component_size)
-		return largest_component_size;
+		return largest_component_size*1.0/vertices.length;
 	}
 	
 
@@ -111,7 +112,7 @@ function monteCarloSimulation(iterations,p){
 	var sum = 0;
 	for(var i = 0;i<iterations;i++){
 		var eg = new eralpGraph(100);
-		var p = 0.01;
+
 		for(var source = 0;source<100;source++){
 			for(var destination = 0;destination<100;destination++){
 				if(Math.random() <= p){
@@ -121,14 +122,77 @@ function monteCarloSimulation(iterations,p){
 		}
 		sum += eg.findLargestComponent();
 	}
-	console.log((sum)*1.0/iterations);
+
+	return  (sum)*1.0/iterations;
 }
 function main(){
+	var results =[];
+	var probability_list = [];
 	
+	for(var i = 0;i < 10;i++)
+	{
+		probability_list.push(i*0.005);
+	}
+	probability_list.push(1);
+	
+	for(var i = 0;i < probability_list.length; i++){
+		results.push(monteCarloSimulation(50,probability_list[i]));
+	}
+	console.log(results);
+	
+	var chart;
+	chart = new Highcharts.Chart({
+            chart: {
+                renderTo: 'container',
+                type: 'line',
+                marginRight: 130,
+                marginBottom: 25
+            },
+            title: {
+                text: 'Largest Component Proportion vs p',
+                x: -20 //center
+            },
+            xAxis: {
+                categories: probability_list
+            },
+            yAxis: {
+                title: {
+                    text: ''
+                },
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            },
+            tooltip: {
+                formatter: function() {
+                        return this.x +': '+ this.y;
+                }
+            },
+            legend: {
+                layout: 'vertical',
+                align: 'right',
+                verticalAlign: 'top',
+                x: -200,
+                y: -200,
+                borderWidth: 0
+            },
+            series: [{
+                name: 'Tokyo',
+                data: results
+            }]
+        });
 }
+
 </script>
-<a href="#" onclick="monteCarloSimulation(500,0.01)">click</a>
-<a href="#" onclick="monteCarloSimulation(50)">click</a>
-<canvas id="springydemo" width="640" height="480" />
+<ul>
+<li><a href="#" onclick="main()">Monte Carlo Simulation</a></li>
+<li><a href="#" onclick="redraw(0.01)">Visualize Random Graph</a></li>
+</ul>
+<canvas id="springydemo" width="640" height="480" style="float:left;"></canvas>
+<div id="container" style="float:left; min-width: 600px; height: 400px; margin: 0 auto"></div>
+
+
 </body>
 </html>
