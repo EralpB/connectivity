@@ -27,7 +27,7 @@ for(var i = 0;i<v;i++){
 }
 
 for(var source = 0;source<v;source++){
-	for(var destination = 0;destination<v;destination++){
+	for(var destination = source+1;destination<v;destination++){
 		if(Math.random() <= p){
 			graph.newEdge(graph.nodes[source],graph.nodes[destination],{directional:false});
 		}
@@ -122,7 +122,7 @@ function monteCarloSimulation(iterations,vcount,p){
 		var eg = new eralpGraph(vcount);
 
 		for(var source = 0;source<vcount;source++){
-			for(var destination = 0;destination<vcount;destination++){
+			for(var destination = source+1;destination<vcount;destination++){
 				if(Math.random() <= p){
 					eg.addEdge(source,destination);
 				}
